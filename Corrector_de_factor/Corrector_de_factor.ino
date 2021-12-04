@@ -11,13 +11,13 @@ const float VOLTAJE_MAXIMO  = 5.0;
 const float FILTRO_ALPHA    = 0.86;    //Constante alpha del filtro
 
 Sensor*     SensorCorriente;
-const float I_OFFSET        = 516.9;
+const float I_OFFSET        = 516;
 const float I_PENDIENTE     = 0.180;
 float       I_Dato;           
 
 Sensor*     SensorVoltaje;  
-const float V_OFFSET        = 513;
-const float V_PENDIENTE     = 0.0333;
+const float V_OFFSET        = 515;
+const float V_PENDIENTE     = 0.03308;
 float       V_Dato;  
         
 
@@ -49,8 +49,10 @@ const int OP_RMS_FP     = 80; //'P'
 const int OP_GRAFICA    = 71; //'G'
 const int OP_COTA       = 67; //'C'
 const int OP_AMPLI_POT  = 65; //'A'
-const int OP_RESET      = 82;  //'R'
+const int OP_RESET      = 82; //'R'
+const int OP_DELAY      = 68; //'D'
       int OP_opcion     = 0;  //Default
+     
 
 ////////////////////////
 ////                ////
@@ -71,11 +73,14 @@ const int P_LED_R     = 11;
 ////    Grafica     ////
 ////                ////
 ////////////////////////
-float       Cota_Max      = 14;
+float       Cota_Max      = 0;
 float       Cota_Min      = 0;
 const int   MULTIPLICADOR = 10;  
 const int   NO_COTA       = 0;
 const int   SI_COTA       = 1;
+int         Retraso       = 0;
+const int   RETRASO       = 100;
+boolean     Activa_Retraso= false; 
 
 void setup() {
   Serial.begin(115200);
@@ -116,6 +121,12 @@ void loop() {
       CAMBIA_AMPLITUD();
       MAPEA_SENSORES();
       IMPRIME_GRAFICA(NO_COTA);
+    break;
+
+    case OP_DELAY:
+      Activa_Retraso?Retraso = 0: Retraso = RETRASO;
+      Activa_Retraso = !Activa_Retraso;
+      OP_opcion = OP_GRAFICA;
     break;
     
     case OP_RESET:
@@ -260,4 +271,6 @@ void IMPRIME_GRAFICA(int COTA){
     Serial.print(",");
     Serial.println(Cota_Min);  
   }
+
+  delay(Retraso);
 }
