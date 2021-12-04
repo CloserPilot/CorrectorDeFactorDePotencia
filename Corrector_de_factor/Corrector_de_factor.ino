@@ -1,4 +1,5 @@
 #include "Sensor.h"
+#include "math.h"
 ////////////////////////
 ////                ////
 ////    SENSORES    ////
@@ -7,7 +8,7 @@
 //Para los sensores
 const float RESOLUCION      = 1024.0; //2^Nbits
 const float VOLTAJE_MAXIMO  = 5.0;
-const float FILTRO_ALPHA    = 0.9;    //Constante alpha del filtro
+const float FILTRO_ALPHA    = 0.86;    //Constante alpha del filtro
 
 Sensor*     SensorCorriente;
 const float I_OFFSET        = 516.9;
@@ -16,17 +17,23 @@ float       I_Dato;
 
 Sensor*     SensorVoltaje;  
 const float V_OFFSET        = 513;
-const float V_PENDIENTE     = 0.03318;
+const float V_PENDIENTE     = 0.0333;
 float       V_Dato;  
         
 
 ////////////////////////
 ////                ////
-////      RMS       ////
+////   RMS y FP     ////
 ////                ////
 ////////////////////////
 float         Irms;
 float         Vrms;
+
+float         Preal;
+float         Paparente;
+float         FP;
+float         phi;
+
 float         RMS_contador;
 
 const int     RMS_t_mues  = 1000;
@@ -38,7 +45,7 @@ unsigned long RMS_t_ini;
 ////      MENU      ////
 ////                ////
 ////////////////////////
-const int OP_RMS        = 80; //'P'
+const int OP_RMS_FP     = 80; //'P'
 const int OP_GRAFICA    = 71; //'G'
 const int OP_COTA       = 67; //'C'
 const int OP_AMPLI_POT  = 65; //'A'
@@ -67,7 +74,8 @@ const int P_LED_R     = 11;
 float       Cota_Max      = 14;
 float       Cota_Min      = 0;
 const int   MULTIPLICADOR = 10;  
-
+const int   NO_COTA       = 0;
+const int   SI_COTA       = 1;
 
 void setup() {
   Serial.begin(115200);
@@ -87,27 +95,27 @@ void loop() {
 
   switch (OP_opcion) {
     
-    case OP_RMS:
-      OBTENER_RMS();
+    case OP_RMS_FP:
+      OBTENER_RMS_FP();
       IMPRIME_INFO();
     break;
     
     case OP_GRAFICA:
       APAGA_CAMBIOS();
       MAPEA_SENSORES();
-      IMPRIME_GRAFICA();
+      IMPRIME_GRAFICA(NO_COTA);
     break;
 
     case OP_COTA:
       CAMBIA_COTA();
       MAPEA_SENSORES();
-      IMPRIME_GRAFICA();
+      IMPRIME_GRAFICA(SI_COTA);
     break;
     
     case OP_AMPLI_POT:
       CAMBIA_AMPLITUD();
       MAPEA_SENSORES();
-      IMPRIME_GRAFICA();
+      IMPRIME_GRAFICA(NO_COTA);
     break;
     
     case OP_RESET:
@@ -122,24 +130,33 @@ void loop() {
 
 ////////////////////////////////////
 ////                            ////
-////        Valores RMS         ////
+////     Valores RMS y FP       ////
 ////                            ////
 ////////////////////////////////////
-void OBTENER_RMS(){
-  RMS_contador = 0;
+void OBTENER_RMS_FP(){
+  Irms = Vrms = RMS_contador = 0;
+  Preal = 1.0;
+  
   RMS_t_ini = millis();
 
   while( (millis()-RMS_t_ini) < RMS_t_mues){
     MAPEA_SENSORES();
     
-    Irms += pow(I_Dato, 2);  // Isuma += [(Vi-offset)/m] ^2
-    Vrms += pow(V_Dato, 2);  // Isuma += [(Vi-offset)/m] ^2
+    Irms += pow(I_Dato, 2);   // Irms += [(Vi-offset)/m] ^2
+    Vrms += pow(V_Dato, 2);   // Vrms += [(Vi-offset)/m] ^2
+
+    Preal += I_Dato*V_Dato;   //  Preal += I(t)*V(t)
 
     RMS_contador++;
   }
 
   Irms = sqrt(Irms/RMS_contador);
   Vrms = sqrt(Vrms/RMS_contador);
+
+  Preal = Preal/RMS_contador;
+  Paparente = Vrms*Irms;
+  FP = Preal/Paparente;
+  phi = acos(FP)*360/(2*PI);
 }
 
 
@@ -181,7 +198,7 @@ void CAMBIA_AMPLITUD(){
 
 ////////////////////////////////////
 ////                            ////
-////       Mapea Sensores       ////
+////        Apaga Cambios       ////
 ////                            ////
 ////////////////////////////////////
 void APAGA_CAMBIOS(){
@@ -211,10 +228,18 @@ void RESET(){
 ////////////////////////////////////
 //Imprime los valores en el monitor serial
 void IMPRIME_INFO(){
-   Serial.print("Corriente RMS = ");
-   Serial.print(Irms,2);
-   Serial.print("          Voltaje RMS = ");
-   Serial.println(Vrms,2);
+  Serial.print("Irms = ");
+  Serial.print(Irms,2);
+  Serial.print("|   Vrms = ");
+  Serial.print(Vrms,2);
+  Serial.print("|   PReal = ");
+  Serial.print(Preal,2);
+  Serial.print("|   PAparente = ");
+  Serial.print(Paparente,2);
+  Serial.print("|   FP = ");
+  Serial.print(FP,2);
+  Serial.print("|   Angulo = ");
+  Serial.println(phi);
 }
 
 ////////////////////////////////////
@@ -222,13 +247,17 @@ void IMPRIME_INFO(){
 ////      Imprime Grafica      /////
 ////                           /////
 ////////////////////////////////////
-void IMPRIME_GRAFICA(){
-  Serial.print(I_Dato);
+void IMPRIME_GRAFICA(int COTA){
+  Serial.print(I_Dato,4);
   Serial.print(",");
-  Serial.print(V_Dato);
-  Serial.print(",");
-  Serial.print(Cota_Max);
-  Serial.print(",");
-  Serial.println(Cota_Min);
-
+  
+  if(COTA == NO_COTA)
+    Serial.println(V_Dato); 
+  else{
+    Serial.print(V_Dato); 
+    Serial.print(",");
+    Serial.print(Cota_Max);
+    Serial.print(",");
+    Serial.println(Cota_Min);  
+  }
 }
