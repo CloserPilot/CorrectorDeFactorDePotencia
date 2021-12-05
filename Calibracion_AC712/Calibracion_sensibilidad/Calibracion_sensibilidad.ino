@@ -1,39 +1,69 @@
-//     (Vi-offset)rms    (V_suma)rms
-// m = -------------- = -------
-//         Irms           Irms
+////////////////////////
+/////              /////
+/////   SENSORES   /////
+/////              /////
+////////////////////////
+const float   RESOLUCION      = 1024.0;
+const float   VOLTAJE_MAXIMO  = 5.0;
+const float   CONSTANTE_ADC   = VOLTAJE_MAXIMO/RESOLUCION;
 
+float         SensorVoltaje;
+float         SensorCorriente;
+float         Vrms;
+float         Irms;
+float         V_OFFSET        = 514.2;
+float         I_OFFSET        = 511.5;
 
-//      lectura*5V
-// Vx = ---------- = lectura*0.004882
-//        1024
+const int     T_MUESTREO      = 1000;  //Tiempo de muestreo (milis)
+unsigned long T_ini;
+int           contador;
 
-const int OFFSET = 510;
-const float ADC_ = 0.004882;  //Relacion de transformacion del ADC 
-const int T_MUESTREO = 500;   //Tiempo para calcular rms
+////////////////////////
+////                ////
+////   PUERTOS AD   ////
+////                ////
+////////////////////////
+const int P_CORRIENTE = A0;   //A0
+const int P_VOLTAJE   = A1;   //A1
 
-float v_rms; 
-float v_suma;
-float v_aux; 
-int contador;
-
-unsigned long t_ini;
 
 void setup(){
   Serial.begin (115200);
 }
 
 void loop(){
-  v_suma = 0;
+  Vrms = 0.0;
+  Irms = 0.0;
+  SensorCorriente = 0.0;
   contador = 0;
-  t_ini = millis();
+  
+  T_ini = millis();
 
-  while( (millis()-t_ini) < T_MUESTREO){
-    v_aux = (analogRead(A0)-OFFSET)*ADC_; // Vaux = (Vi-offset) [V]
-    v_suma += pow(v_aux, 2);  // Vsuma += (Vi-offset)^2
+  while( (millis()-T_ini) < T_MUESTREO){
+    SensorCorriente = (analogRead(P_CORRIENTE)-I_OFFSET)*CONSTANTE_ADC; // Vaux = (Vi-offset) [V]
+    SensorVoltaje   = (analogRead(P_VOLTAJE)  -V_OFFSET)*CONSTANTE_ADC; // Vaux = (Vi-offset) [V]
+    
+    Irms += pow(SensorCorriente , 2);  // Irms  += (Vi-offset)^2
+    Vrms += pow(SensorVoltaje   , 2);  // Vsuma += (Vi-offset)^2
     contador++;
   }
 
-  v_rms = sqrt(v_suma/contador);
-  Serial.print("Valor rms: ");
-  Serial.println(v_rms,3);
+  Irms = sqrt(Irms/contador);
+  Vrms = sqrt(Vrms/contador);
+  IMPRIME_INFO();
+}
+
+
+void IMPRIME_INFO(){
+  //Serial.print("Corriente: ");
+  //Serial.print(SensorCorriente,3);  //Voltaje a 3 decimales 
+  Serial.print(" Corriente: ");
+  Serial.print(Irms,3);
+  
+  Serial.print("   |   ");
+
+  //Serial.print("Voltaje: ");
+  //Serial.print(SensorVoltaje,3);  //Voltaje a 3 decimales 
+  Serial.print(" Voltaje: ");
+  Serial.println(Vrms,3);
 }

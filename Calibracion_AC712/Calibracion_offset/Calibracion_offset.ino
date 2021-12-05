@@ -1,38 +1,61 @@
-// 5V -> 1024
-// Vx -> lectura
+////////////////////////
+/////              /////
+/////   SENSORES   /////
+/////              /////
+////////////////////////
+const float   RESOLUCION      = 1024.0;
+const float   VOLTAJE_MAXIMO  = 5.0;
+const float   CONSTANTE_ADC   = VOLTAJE_MAXIMO/RESOLUCION;
 
-//      lectura*5V
-// Vx = ---------- = lectura*0.004882
-//        1024
+float         SensorVoltaje;
+float         SensorCorriente;
 
-const float ADC_ = 0.004882;
+const int     T_MUESTREO      = 1000;  //Tiempo de muestreo (milis)
+unsigned long T_ini;
+int           contador;
 
-int t_muestreo = 1000;  //Tiempo de muestreo (milis)
-unsigned long t_ini;
+////////////////////////
+////                ////
+////   PUERTOS AD   ////
+////                ////
+////////////////////////
+const int P_CORRIENTE = A0;   //A0
+const int P_VOLTAJE   = A1;   //A1
 
-float v_suma;
-int contador;
-float vout;
-float vout_int;
+
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 }
 
 void loop() {
-  v_suma = 0;
+  SensorVoltaje = 0;
+  SensorCorriente = 0;
   contador = 0;
-  t_ini = millis();
+  T_ini = millis();
   
-  while(  (millis()-t_ini) < t_muestreo){
-    v_suma += analogRead(A0)*ADC_; //Mapeo del sensor
+  while(  (millis()-T_ini) < T_MUESTREO){
+    SensorCorriente += analogRead(P_CORRIENTE)*CONSTANTE_ADC; //Mapeo del sensor
+    SensorVoltaje   += analogRead(P_VOLTAJE)  *CONSTANTE_ADC; //Mapeo del sensor
     contador++;
   }
 
-  vout = v_suma/contador;
-  vout_int = vout/ADC_;
-  Serial.print("Valor de voltaje: ");
-  Serial.print(vout,3);  //Voltaje a 3 decimales 
-  Serial.print("    Valor int: ");
-  Serial.println(vout_int,1);
+  SensorCorriente = SensorCorriente/contador;
+  SensorVoltaje   = SensorVoltaje/contador;
+  IMPRIME_INFO();
+}
+
+
+void IMPRIME_INFO(){
+  //Serial.print("Corriente: ");
+  //Serial.print(SensorCorriente,3);  //Voltaje a 3 decimales 
+  Serial.print(" Corriente int: ");
+  Serial.print(SensorCorriente/CONSTANTE_ADC,1);
+  
+  Serial.print("   |   ");
+
+  //Serial.print("Voltaje: ");
+  //Serial.print(SensorVoltaje,3);  //Voltaje a 3 decimales 
+  Serial.print(" Voltaje int: ");
+  Serial.println(SensorVoltaje/CONSTANTE_ADC,1);
 }

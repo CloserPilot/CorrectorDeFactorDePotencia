@@ -20,7 +20,7 @@ const int offset = 510;//offset       "Calibracion_offset"
 const float m = 0.180; //Sensibilidad "Calibracion_sensibilidad"
 
 const float ADC_ = 0.004882;  //Relacion de transformacion del ADC 
-
+const int PUERTO = A0;
 int t_muestreo = 1000;
 unsigned long t_ini;
 int aux = 6;
@@ -37,7 +37,7 @@ void loop(){
   t_ini = millis();
 
   while( (millis()-t_ini) < t_muestreo){
-    Vaux = (analogRead(A0)-offset)*ADC_; // Vaux = (Vi-offset) [V]
+    Vaux = (analogRead(PUERTO)-offset)*ADC_; // Vaux = (Vi-offset) [V]
     Iaux = Vaux/m;
     IMPRIME_INFO();
     
