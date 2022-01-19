@@ -1,0 +1,11 @@
+https://naylampmechatronics.com/blog/48_tutorial-sensor-de-corriente-acs712.html
+https://www.luisllamas.es/arduino-paso-banda/
+https://www.luisllamas.es/arduino-paso-bajo-exponencial/
+https://learn.openenergymonitor.org/electricity-monitoring/voltage-sensing/measuring-voltage-with-an-acac-power-adapter
+https://soloelectronicos.com/2021/08/24/como-medir-la-potencia-real-de-ca-y-la-potencia-aparente-con-arduino/
+https://meettechniek.info/diy-instruments/arduino-wattmeter.html
+
+
+Creacion de inductores:
+https://www.forosdeelectronica.com/threads/fabricacion-de-inductores.80555/
+
