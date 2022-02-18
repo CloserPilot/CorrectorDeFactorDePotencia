@@ -9,3 +9,12 @@ https://meettechniek.info/diy-instruments/arduino-wattmeter.html
 Creacion de inductores:
 https://www.forosdeelectronica.com/threads/fabricacion-de-inductores.80555/
 
+Inductores Choke:
+https://interferencetechnology.com/be-careful-with-low-cost-quality-common-mode-chokes/
+https://www.electronicspoint.com/forums/threads/inductor-4-pins.260553/
+
+Inductor 10mH
+https://uk.farnell.com/murata/1433510c/inductor-3-3mh-10-1a-radial/dp/3760500
+https://www.mouser.mx/ProductDetail/Murata-Power-Solutions/1410605C?qs=sGAEpiMZZMuln9v2%2F1E3MVGLrJFQFTLY
+https://www.mouser.mx/datasheet/2/281/kmp_1400-38440.pdf
+https://www.mouser.mx/ProductDetail/Murata-Power-Solutions/1410605C?qs=sGAEpiMZZMuln9v2%2F1E3MVGLrJFQFTLY
